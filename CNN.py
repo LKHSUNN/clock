@@ -15,6 +15,17 @@ IMAGE_SIZE = 300
 MINUTES_PER_CYCLE = 720
 
 
+def get_device():
+
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+
+    return torch.device("cpu")
+
+
 #################################
 # 时间转换函数
 #################################
@@ -117,6 +128,11 @@ class ClockCNN(nn.Module):
 
 def train():
 
+    device = get_device()
+    print(f"当前计算设备: {device}")
+
+    use_pin_memory = device.type == "cuda"
+
     dataset = ClockDataset(
         json_path="clocks/labels.json",
         image_dir="clocks"
@@ -134,16 +150,20 @@ def train():
     train_loader = DataLoader(
         train_set,
         batch_size=32,
-        shuffle=True
+        shuffle=True,
+        pin_memory=use_pin_memory,
+        num_workers=2
     )
 
     test_loader = DataLoader(
         test_set,
         batch_size=32,
-        shuffle=False
+        shuffle=False,
+        pin_memory=use_pin_memory,
+        num_workers=2
     )
 
-    model = ClockCNN()
+    model = ClockCNN().to(device)
 
     criterion = nn.MSELoss()
 
@@ -159,6 +179,9 @@ def train():
         total_loss = 0
 
         for images, labels in train_loader:
+
+            images = images.to(device, non_blocking=use_pin_memory)
+            labels = labels.to(device, non_blocking=use_pin_memory)
 
             outputs = model(images)
 
@@ -185,6 +208,9 @@ def train():
 
     with torch.no_grad():
         for images, labels in test_loader:
+
+            images = images.to(device, non_blocking=use_pin_memory)
+            labels = labels.to(device, non_blocking=use_pin_memory)
 
             outputs = model(images)
 
