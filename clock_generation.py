@@ -109,10 +109,11 @@ def draw_clock(hour, minute, filename):
         width=3
     )
 
-    # 随机旋转
-    rotate_angle = random.randint(0, 359)
-    img = img.rotate(rotate_angle, resample=Image.BICUBIC, expand=False)
-
+    # # 随机旋转
+    # rotate_angle = random.randint(0, 359)
+    # img = img.rotate(rotate_angle, resample=Image.BICUBIC, expand=False)
+    img = img.rotate(0, resample=Image.BICUBIC, expand=False)
+    
     # 兜底保证输出尺寸统一
     if img.size != (IMAGE_SIZE, IMAGE_SIZE):
         img = img.resize((IMAGE_SIZE, IMAGE_SIZE), Image.BICUBIC)
@@ -122,7 +123,7 @@ def draw_clock(hour, minute, filename):
 
 def generate_dataset(num_images=1000):
 
-    os.makedirs("clocks", exist_ok=True)
+    os.makedirs("clocks_test", exist_ok=True)
 
     dataset = []
 
@@ -147,10 +148,10 @@ def generate_dataset(num_images=1000):
             "time": time_str
         })
 
-    with open("clocks/labels.json", "w") as f:
+    with open("clocks_test/labels.json", "w") as f:
         json.dump(dataset, f, indent=4)
 
     print("数据集生成完成！")
 
 
-generate_dataset(1000)
+generate_dataset(10)
